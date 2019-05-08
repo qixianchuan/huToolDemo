@@ -1,5 +1,10 @@
 package com.qi;
 
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.CircleCaptcha;
+import cn.hutool.captcha.LineCaptcha;
+import cn.hutool.captcha.ShearCaptcha;
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.BetweenFormater;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
@@ -144,6 +149,11 @@ public class ApplicationTests {
         System.out.println(StrUtil.removeSuffix(path1, ".png"));
         System.out.println("====================");
         System.out.println(StrUtil.removeSuffixIgnoreCase(path2, ".png"));
+
+        String template = "{}爱{}，就像老鼠爱大米";
+        String str = StrUtil.format(template, "我", "你"); //str -> 我爱你，就像老鼠爱大米
+        System.out.println("====================");
+        System.out.println(str);
     }
 
     @Test
@@ -320,5 +330,141 @@ public class ApplicationTests {
         Integer array01[] = {1, 2, 3, 4, 5, 6};
         System.out.println(RandomUtil.randomEle(array01));
 
+    }
+
+    @Test
+    //验证码
+    public void Test8() {
+        /**
+         *
+         验证码功能位于com.xiaoleilu.hutool.captcha包中，核心接口为ICaptcha，此接口定义了以下方法：
+         createCode 创建验证码，实现类需同时生成随机验证码字符串和验证码图片
+         getCode 获取验证码的文字内容
+         verify 验证验证码是否正确，建议忽略大小写
+         write 将验证码写出到目标流中
+         其中write方法只有一个OutputStream，ICaptcha实现类可以根据这个方法封装写出到文件等方法。
+         AbstractCaptcha为一个ICaptcha抽象实现类，此类实现了验证码文本生成、非大小写敏感的验证、写出到流和文件等方法，通过继承此抽象类只需实现createImage方法定义图形生成规则即可。
+         * **/
+        //实现类
+        //LineCaptcha 线段干扰的验证码
+        LineCaptcha lineCaptcha = CaptchaUtil.createLineCaptcha(200, 100);
+        lineCaptcha.write("E:/line.png");
+        lineCaptcha.verify("1234");
+        String code = lineCaptcha.getCode();
+        System.out.println("====================");
+        System.out.println(code);
+        //CircleCaptcha 圆圈干扰验证码
+        //定义图形验证码的长、宽、验证码字符数、干扰元素个数
+        CircleCaptcha captcha = CaptchaUtil.createCircleCaptcha(200, 100, 4, 20);
+        //CircleCaptcha captcha = new CircleCaptcha(200, 100, 4, 20);
+        //图形验证码写出，可以写出到文件，也可以写出到流
+        captcha.write("E:/circle.png");
+        //验证图形验证码的有效性，返回boolean值
+        captcha.verify("1234");
+        String codeCircle = captcha.getCode();
+        System.out.println("====================");
+        System.out.println(codeCircle);
+        //ShearCaptcha 扭曲干扰验证码
+        //定义图形验证码的长、宽、验证码字符数、干扰线宽度
+        ShearCaptcha captchaS = CaptchaUtil.createShearCaptcha(200, 100, 4, 4);
+        //ShearCaptcha captcha = new ShearCaptcha(200, 100, 4, 4);
+        //图形验证码写出，可以写出到文件，也可以写出到流
+        captchaS.write("E:/shear.png");
+        //验证图形验证码的有效性，返回boolean值
+        captchaS.verify("1234");
+        String codeS = captchaS.getCode();
+        System.out.println("====================");
+        System.out.println(codeS);
+        /**
+         * 写出到浏览器（Servlet输出）
+         ICaptcha captcha = ...;
+         captcha.write(response.getOutputStream());
+         //Servlet的OutputStream记得自行关闭哦！
+         * **/
+    }
+
+    @Test
+    //JAVA 转换工具
+    public void Test9() {
+        int a = 1;
+        String aStr = Convert.toStr(a);
+
+        int[] b = {1, 2, 3, 4, 5};
+        String bStr = Convert.toStr(b);
+        System.out.println("====================");
+        System.out.println(bStr);
+        Object c = null;
+        String cStr = Convert.toStr(c, "空字符串(默认值)");
+        System.out.println("====================");
+        System.out.println(cStr);
+
+        //数组类型相互转化
+        String[] a1 = {"1", "2", "3", "4"};
+        Integer[] b1 = Convert.toIntArray(a1);
+        System.out.println("====================");
+        for (int i = 0; i < b1.length; i++) {
+            System.out.println(b1[i]);
+        }
+        System.out.println("====================");
+        //数组和集合互换
+        String[] a2 = {"1", "2", "3", "4"};
+        List<?> l = Convert.toList(a2);
+        Iterator<?> it = l.iterator();
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+        System.out.println("====================");
+        String[] b2 = Convert.toStrArray(l);
+        for (int j = 0; j < b2.length; j++) {
+            System.out.println(b2[j]);
+        }
+    }
+
+    @Test
+    public void Test9a() {
+        //半角全角互相转换
+        String a = "123456789";
+        //全角
+        String b = Convert.toSBC(a);
+        System.out.println("====================");
+        System.out.println(b);
+        //半角
+        String c = Convert.toDBC(b);
+        System.out.println("====================");
+        System.out.println(c);
+
+        String a1 = "how2j的Hutool教程";
+        String unicode = Convert.strToUnicode(a1);
+        System.out.println("====================");
+        System.out.println(unicode);
+        String b1 = Convert.unicodeToStr(unicode);
+        System.out.println("====================");
+        System.out.println(b1);
+        //不同编码之间的转换
+        System.out.println("不同编码之间的转换");
+        String a2 = "how2j的Hutool教程";
+        //转换后result为乱码
+        String b2 = Convert.convertCharset(a2, CharsetUtil.UTF_8, CharsetUtil.ISO_8859_1);
+        System.out.println("====================");
+        System.out.println(b2);
+        String c2 = Convert.convertCharset(b2, CharsetUtil.ISO_8859_1, "UTF-8");
+        System.out.println("====================");
+        System.out.println(c2);
+
+        //数字转换为金额
+        double a3 = 1234567123456.12;
+        String b3 = Convert.digitToChinese(a3);
+        System.out.println("====================");
+        System.out.println(b3);
+
+        //原始类和包装类转换
+        Class<?> wrapClass = Integer.class;
+        Class<?> unWraped = Convert.unWrap(wrapClass);
+        System.out.println("====================");
+        System.out.println(unWraped);
+        Class<?> primitiveClass = long.class;
+        Class<?> wraped = Convert.wrap(primitiveClass);
+        System.out.println("====================");
+        System.out.println(wraped);
     }
 }
